@@ -68,7 +68,6 @@ exports.findExistingUser = [
  * User registration.
  *
  * @param {string}      username
- * @param {string}      lastName
  * @param {string}      email
  * @param {string}      password
  *
@@ -79,9 +78,9 @@ exports.register = [
   body("username")
     .isLength({ min: 1 })
     .trim()
-    .withMessage("First name must be specified.")
+    .withMessage("User name must be specified.")
     .isAlphanumeric()
-    .withMessage("First name has non-alphanumeric characters."),
+    .withMessage("User name has non-alphanumeric characters."),
   body("email")
     .isLength({ min: 1 })
     .trim()
@@ -147,7 +146,6 @@ exports.register = [
                 let userData = {
                   _id: user._id,
                   username: user.username,
-                  lastName: user.lastName,
                   email: user.email
                 };
                 return apiResponse.successResponseWithData(
@@ -216,7 +214,6 @@ exports.login = [
                     let userData = {
                       _id: user._id,
                       username: user.username,
-                      lastName: user.lastName,
                       email: user.email
                     };
                     //Prepare JWT token for authentication
