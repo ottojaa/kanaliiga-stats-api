@@ -10,55 +10,50 @@ const mailer = require("../helpers/mailer");
 const { constants } = require("../helpers/constants");
 
 exports.findExistingEmail = [
-  body("email").custom(value => {
-    return UserModel.findOne({ email: value }).then(email => {
-      if (email) {
-        return Promise.reject("E-mail already in use");
-      }
-    });
-  }),
-  (req, res) => {
+  function(req, res) {
     try {
-      const errors = validationResult(req);
-      if (!errors.isEmpty()) {
-        return apiResponse.validationErrorWithData(
-          res,
-          "Email already exists.",
-          errors.array()
-        );
-      } else {
-        return apiResponse.successResponseWithData(res, "Email is not taken.");
-      }
+      UserModel.findOne({ email: req.query.email }).then(email => {
+        if (email !== null) {
+          return apiResponse.successResponseWithData(
+            res,
+            "Email is already taken.",
+            { taken: true }
+          );
+        } else {
+          return apiResponse.successResponseWithData(
+            res,
+            "Email is not taken.",
+            { taken: false }
+          );
+        }
+      });
     } catch (err) {
+      //throw error in json response with status 500.
       return apiResponse.ErrorResponse(res, err);
     }
   }
 ];
 
 exports.findExistingUser = [
-  body("username").custom(value => {
-    return UserModel.findOne({ username: value }).then(user => {
-      if (user) {
-        return Promise.reject("Username is taken");
-      }
-    });
-  }),
-  (req, res) => {
+  function(req, res) {
     try {
-      const errors = validationResult(req);
-      if (!errors.isEmpty()) {
-        return apiResponse.validationErrorWithData(
-          res,
-          "Username already exists.",
-          errors.array()
-        );
-      } else {
-        return apiResponse.successResponseWithData(
-          res,
-          "Username is not taken."
-        );
-      }
+      UserModel.findOne({ username: req.query.usename }).then(username => {
+        if (username !== null) {
+          return apiResponse.successResponseWithData(
+            res,
+            "Username is already taken.",
+            { taken: true }
+          );
+        } else {
+          return apiResponse.successResponseWithData(
+            res,
+            "Username is not taken.",
+            { taken: false }
+          );
+        }
+      });
     } catch (err) {
+      //throw error in json response with status 500.
       return apiResponse.ErrorResponse(res, err);
     }
   }
