@@ -20,7 +20,7 @@ function MatchData(data) {
  *
  * @returns {Object}
  */
-exports.MatchList = [
+exports.matchList = [
   auth,
   function(req, res) {
     try {
@@ -56,7 +56,7 @@ exports.MatchList = [
  *
  * @returns {Object}
  */
-exports.MatchDetail = [
+exports.matchDetail = [
   auth,
   function(req, res) {
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
@@ -98,7 +98,7 @@ exports.MatchDetail = [
  *
  * @returns {Object}
  */
-exports.MatchStore = [
+exports.matchStore = [
   auth,
   body("title", "Title must not be empty.")
     .isLength({ min: 1 })
@@ -163,7 +163,7 @@ exports.MatchStore = [
  *
  * @returns {Object}
  */
-exports.MatchUpdate = [
+exports.matchUpdate = [
   auth,
   body("id", "Match id must not be empty")
     .isLength({ min: 1 })
@@ -252,7 +252,7 @@ exports.MatchUpdate = [
  *
  * @returns {Object}
  */
-exports.MatchDelete = [
+exports.matchDelete = [
   auth,
   function(req, res) {
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
