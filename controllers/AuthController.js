@@ -12,6 +12,7 @@ const { constants } = require("../helpers/constants");
 exports.findExistingEmail = [
   function(req, res) {
     try {
+      console.log(req.query.email);
       UserModel.findOne({ email: req.query.email }).then(email => {
         if (email !== null) {
           return apiResponse.successResponseWithData(
@@ -37,7 +38,7 @@ exports.findExistingEmail = [
 exports.findExistingUser = [
   function(req, res) {
     try {
-      UserModel.findOne({ username: req.query.usename }).then(username => {
+      UserModel.findOne({ username: req.query.username }).then(username => {
         if (username !== null) {
           return apiResponse.successResponseWithData(
             res,
@@ -75,20 +76,15 @@ exports.register = [
     .trim()
     .withMessage("User name must be specified.")
     .isAlphanumeric()
-    .withMessage("User name has non-alphanumeric characters."),
-  body("email")
-    .isLength({ min: 1 })
-    .trim()
-    .withMessage("Email must be specified.")
-    .isEmail()
-    .withMessage("Email must be a valid email address.")
+    .withMessage("User name has non-alphanumeric characters.")
     .custom(value => {
-      return UserModel.findOne({ email: value }).then(user => {
+      return UserModel.findOne({ username: value }).then(user => {
         if (user) {
-          return Promise.reject("E-mail already in use");
+          return Promise.reject("Username already in use");
         }
       });
     }),
+  body("email"),
   body("password")
     .isLength({ min: 6 })
     .trim()
@@ -119,6 +115,7 @@ exports.register = [
             username: req.body.username,
             email: req.body.email,
             password: hash,
+            role: "USER",
             confirmOTP: otp
           });
           // Html email body
@@ -172,12 +169,7 @@ exports.register = [
  * @returns {Object}
  */
 exports.login = [
-  body("email")
-    .isLength({ min: 1 })
-    .trim()
-    .withMessage("Email must be specified.")
-    .isEmail()
-    .withMessage("Email must be a valid email address."),
+  body("email"),
   body("password")
     .isLength({ min: 1 })
     .trim()
@@ -233,20 +225,23 @@ exports.login = [
                 } else {
                   return apiResponse.unauthorizedResponse(
                     res,
-                    "Account is not confirmed. Please confirm your account."
+                    "Account is not confirmed. Please confirm your account.",
+                    { errorCode: 2 }
                   );
                 }
               } else {
                 return apiResponse.unauthorizedResponse(
                   res,
-                  "Email or Password wrong."
+                  "Email or Password wrong.",
+                  { errorCode: 1 }
                 );
               }
             });
           } else {
             return apiResponse.unauthorizedResponse(
               res,
-              "Email or Password wrong."
+              "Email or Password wrong.",
+              { errorCode: 1 }
             );
           }
         });
@@ -266,18 +261,6 @@ exports.login = [
  * @returns {Object}
  */
 exports.verifyConfirm = [
-  body("email")
-    .isLength({ min: 1 })
-    .trim()
-    .withMessage("Email must be specified.")
-    .isEmail()
-    .withMessage("Email must be a valid email address."),
-  body("otp")
-    .isLength({ min: 1 })
-    .trim()
-    .withMessage("OTP must be specified."),
-  sanitizeBody("email").escape(),
-  sanitizeBody("otp").escape(),
   (req, res) => {
     try {
       const errors = validationResult(req);
@@ -304,12 +287,13 @@ exports.verifyConfirm = [
                 });
                 return apiResponse.successResponse(
                   res,
-                  "Account confirmed success."
+                  "Account confirmation success!"
                 );
               } else {
                 return apiResponse.unauthorizedResponse(
                   res,
-                  "Otp does not match"
+                  "One time password is incorrect.",
+                  { errorCode: 2 }
                 );
               }
             } else {

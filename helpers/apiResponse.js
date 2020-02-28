@@ -40,10 +40,11 @@ exports.validationErrorWithData = function(res, msg, data) {
   return res.status(400).json(resData);
 };
 
-exports.unauthorizedResponse = function(res, msg) {
+exports.unauthorizedResponse = function(res, msg, data) {
   var data = {
     status: 0,
-    message: msg
+    message: msg,
+    data: data
   };
   return res.status(401).json(data);
 };
