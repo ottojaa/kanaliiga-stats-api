@@ -201,6 +201,7 @@ exports.login = [
                     let userData = {
                       _id: user._id,
                       username: user.username,
+                      role: user.role,
                       email: user.email
                     };
                     //Prepare JWT token for authentication
