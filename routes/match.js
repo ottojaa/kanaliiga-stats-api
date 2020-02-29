@@ -1,12 +1,12 @@
 const express = require("express");
-const MatchController = require("../controllers/MatchController");
+const FaceoffController = require("../controllers/FaceoffController");
 
 const router = express.Router();
 
-router.get("/", MatchController.matchList);
-router.get("/:id", MatchController.matchDetail);
-router.post("/", MatchController.matchStore);
-router.put("/:id", MatchController.matchUpdate);
-router.delete("/:id", MatchController.matchDelete);
+router.get("/", FaceoffController.matchList);
+router.get("/:id", FaceoffController.matchDetail);
+router.post("/", FaceoffController.matchStore);
+router.put("/:id", FaceoffController.matchUpdate);
+router.delete("/:id", FaceoffController.matchDelete);
 
 module.exports = router;

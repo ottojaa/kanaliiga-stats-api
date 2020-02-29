@@ -171,10 +171,10 @@
       ]
     },
     {
-      "name": "Match",
+      "name": "Faceoff",
       "item": [
         {
-          "name": "Match Store",
+          "name": "Faceoff Store",
           "request": {
             "method": "POST",
             "header": [
@@ -195,12 +195,12 @@
               "urlencoded": [
                 {
                   "key": "title",
-                  "value": "testing Match ",
+                  "value": "testing Faceoff ",
                   "type": "text"
                 },
                 {
                   "key": "description",
-                  "value": "testing Match desc",
+                  "value": "testing Faceoff desc",
                   "type": "text"
                 },
                 {
@@ -211,17 +211,17 @@
               ]
             },
             "url": {
-              "raw": "http://localhost:3000/api/Match",
+              "raw": "http://localhost:3000/api/Faceoff",
               "protocol": "http",
               "host": ["localhost"],
               "port": "3000",
-              "path": ["api", "Match"]
+              "path": ["api", "Faceoff"]
             }
           },
           "response": []
         },
         {
-          "name": "Match List",
+          "name": "Faceoff List",
           "request": {
             "method": "GET",
             "header": [
@@ -232,17 +232,17 @@
               }
             ],
             "url": {
-              "raw": "http://localhost:3000/api/Match",
+              "raw": "http://localhost:3000/api/Faceoff",
               "protocol": "http",
               "host": ["localhost"],
               "port": "3000",
-              "path": ["api", "Match"]
+              "path": ["api", "Faceoff"]
             }
           },
           "response": []
         },
         {
-          "name": "Match Detail",
+          "name": "Faceoff Detail",
           "request": {
             "method": "GET",
             "header": [
@@ -253,17 +253,17 @@
               }
             ],
             "url": {
-              "raw": "http://localhost:3000/api/Match/5d43d14a246036209713e667",
+              "raw": "http://localhost:3000/api/Faceoff/5d43d14a246036209713e667",
               "protocol": "http",
               "host": ["localhost"],
               "port": "3000",
-              "path": ["api", "Match", "5d43d14a246036209713e667"]
+              "path": ["api", "Faceoff", "5d43d14a246036209713e667"]
             }
           },
           "response": []
         },
         {
-          "name": "Match Update",
+          "name": "Faceoff Update",
           "request": {
             "method": "PUT",
             "header": [
@@ -284,12 +284,12 @@
               "urlencoded": [
                 {
                   "key": "title",
-                  "value": "testing Match 123 456",
+                  "value": "testing Faceoff 123 456",
                   "type": "text"
                 },
                 {
                   "key": "description",
-                  "value": "testing Match desc 123 456",
+                  "value": "testing Faceoff desc 123 456",
                   "type": "text"
                 },
                 {
@@ -300,17 +300,17 @@
               ]
             },
             "url": {
-              "raw": "http://localhost:3000/api/Match/5d43d753cdbdd1264291806c",
+              "raw": "http://localhost:3000/api/Faceoff/5d43d753cdbdd1264291806c",
               "protocol": "http",
               "host": ["localhost"],
               "port": "3000",
-              "path": ["api", "Match", "5d43d753cdbdd1264291806c"]
+              "path": ["api", "Faceoff", "5d43d753cdbdd1264291806c"]
             }
           },
           "response": []
         },
         {
-          "name": "Match Delete",
+          "name": "Faceoff Delete",
           "request": {
             "method": "DELETE",
             "header": [
@@ -321,11 +321,11 @@
               }
             ],
             "url": {
-              "raw": "http://localhost:3000/api/Match/5d43d753cdbdd1264291806c",
+              "raw": "http://localhost:3000/api/Faceoff/5d43d753cdbdd1264291806c",
               "protocol": "http",
               "host": ["localhost"],
               "port": "3000",
-              "path": ["api", "Match", "5d43d753cdbdd1264291806c"]
+              "path": ["api", "Faceoff", "5d43d753cdbdd1264291806c"]
             }
           },
           "response": []

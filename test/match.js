@@ -1,21 +1,21 @@
 const { chai, server, should } = require("./testConfig");
-const MatchModel = require("../models/MatchModel");
+const FaceoffModel = require("../models/FaceoffModel");
 
 /**
- * Test cases to test all the Match APIs
+ * Test cases to test all the Faceoff APIs
  * Covered Routes:
  * (1) Login
- * (2) Store Match
- * (3) Get all Matches
- * (4) Get single Match
- * (5) Update Match
- * (6) Delete Match
+ * (2) Store Faceoff
+ * (3) Get all Faceoffes
+ * (4) Get single Faceoff
+ * (5) Update Faceoff
+ * (6) Delete Faceoff
  */
 
-describe("Match", () => {
+describe("Faceoff", () => {
   //Before each test we empty the database
   before(done => {
-    MatchModel.deleteMany({}, err => {
+    FaceoffModel.deleteMany({}, err => {
       done();
     });
   });
@@ -28,8 +28,8 @@ describe("Match", () => {
 
   // Prepare data for testing
   const testData = {
-    title: "testing Match",
-    description: "testing Match desc",
+    title: "testing Faceoff",
+    description: "testing Faceoff desc",
     isbn: "3214htrff4"
   };
 
@@ -37,7 +37,7 @@ describe("Match", () => {
    * Test the /POST route
    */
   describe("/POST Login", () => {
-    it("it should do user Login for Match", done => {
+    it("it should do user Login for Faceoff", done => {
       chai
         .request(server)
         .post("/api/auth/login")
@@ -54,11 +54,11 @@ describe("Match", () => {
   /*
    * Test the /POST route
    */
-  describe("/POST Match Store", () => {
-    it("It should send validation error for store Match", done => {
+  describe("/POST Faceoff Store", () => {
+    it("It should send validation error for store Faceoff", done => {
       chai
         .request(server)
-        .post("/api/Match")
+        .post("/api/Faceoff")
         .send()
         .set("Authorization", "Bearer " + userTestData.token)
         .end((err, res) => {
@@ -71,16 +71,16 @@ describe("Match", () => {
   /*
    * Test the /POST route
    */
-  describe("/POST Match Store", () => {
-    it("It should store Match", done => {
+  describe("/POST Faceoff Store", () => {
+    it("It should store Faceoff", done => {
       chai
         .request(server)
-        .post("/api/Match")
+        .post("/api/Faceoff")
         .send(testData)
         .set("Authorization", "Bearer " + userTestData.token)
         .end((err, res) => {
           res.should.have.status(200);
-          res.body.should.have.property("message").eql("Match add Success.");
+          res.body.should.have.property("message").eql("Faceoff add Success.");
           done();
         });
     });
@@ -89,11 +89,11 @@ describe("Match", () => {
   /*
    * Test the /GET route
    */
-  describe("/GET All Match", () => {
-    it("it should GET all the Matchs", done => {
+  describe("/GET All Faceoff", () => {
+    it("it should GET all the Faceoffs", done => {
       chai
         .request(server)
-        .get("/api/Match")
+        .get("/api/Faceoff")
         .set("Authorization", "Bearer " + userTestData.token)
         .end((err, res) => {
           res.should.have.status(200);
@@ -107,11 +107,11 @@ describe("Match", () => {
   /*
    * Test the /GET/:id route
    */
-  describe("/GET/:id Match", () => {
-    it("it should GET the Matchs", done => {
+  describe("/GET/:id Faceoff", () => {
+    it("it should GET the Faceoffs", done => {
       chai
         .request(server)
-        .get("/api/Match/" + testData._id)
+        .get("/api/Faceoff/" + testData._id)
         .set("Authorization", "Bearer " + userTestData.token)
         .end((err, res) => {
           res.should.have.status(200);
@@ -124,16 +124,18 @@ describe("Match", () => {
   /*
    * Test the /PUT/:id route
    */
-  describe("/PUT/:id Match", () => {
-    it("it should PUT the Matchs", done => {
+  describe("/PUT/:id Faceoff", () => {
+    it("it should PUT the Faceoffs", done => {
       chai
         .request(server)
-        .put("/api/Match/" + testData._id)
+        .put("/api/Faceoff/" + testData._id)
         .send(testData)
         .set("Authorization", "Bearer " + userTestData.token)
         .end((err, res) => {
           res.should.have.status(200);
-          res.body.should.have.property("message").eql("Match update Success.");
+          res.body.should.have
+            .property("message")
+            .eql("Faceoff update Success.");
           done();
         });
     });
@@ -142,15 +144,17 @@ describe("Match", () => {
   /*
    * Test the /DELETE/:id route
    */
-  describe("/DELETE/:id Match", () => {
-    it("it should DELETE the Matchs", done => {
+  describe("/DELETE/:id Faceoff", () => {
+    it("it should DELETE the Faceoffs", done => {
       chai
         .request(server)
-        .delete("/api/Match/" + testData._id)
+        .delete("/api/Faceoff/" + testData._id)
         .set("Authorization", "Bearer " + userTestData.token)
         .end((err, res) => {
           res.should.have.status(200);
-          res.body.should.have.property("message").eql("Match delete Success.");
+          res.body.should.have
+            .property("message")
+            .eql("Faceoff delete Success.");
           done();
         });
     });
