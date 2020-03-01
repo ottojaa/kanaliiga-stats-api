@@ -1,10 +1,10 @@
 const express = require("express");
 const authRouter = require("./auth");
-const matchRouter = require("./match");
+const faceoffRouter = require("./faceoff");
 
 const app = express();
 
 app.use("/auth/", authRouter);
-app.use("/match/", matchRouter);
+app.use("/faceoff/", faceoffRouter);
 
 module.exports = app;

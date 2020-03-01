@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "bcrypt": "^3.0.6",
+    "body-parser": "^1.19.0",
     "codacy-coverage": "^3.4.0",
     "cookie-parser": "~1.4.3",
     "cors": "^2.8.5",
