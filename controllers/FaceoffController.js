@@ -277,7 +277,6 @@ exports.faceoffDelete = [
         }
       });
     } catch (err) {
-      console.log(err);
       //throw error in json response with status 500.
       return apiResponse.ErrorResponse(res, err);
     }
