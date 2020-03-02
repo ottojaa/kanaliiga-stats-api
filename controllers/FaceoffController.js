@@ -13,7 +13,6 @@ const acceptedRoles = ["ADMIN", "MAINTAINER"];
  * @returns {Object}
  */
 exports.faceoffList = [
-  auth,
   function(req, res) {
     try {
       FaceoffModel.find({ stageId: req.query.stageId }).then(Faceoffs => {
@@ -46,7 +45,6 @@ exports.faceoffList = [
  * @returns {Object}
  */
 exports.faceoffDetail = [
-  auth,
   function(req, res) {
     try {
       FaceoffModel.findOne({ matchId: req.params.id }).then(Faceoff => {
@@ -105,6 +103,7 @@ exports.faceoffStore = [
       var Faceoff = new FaceoffModel({
         matchId: req.body.matchId,
         stageId: req.body.stageId,
+        creator: req.user._id,
         participants: req.body.participants,
         date: req.body.date
       });
@@ -134,7 +133,6 @@ exports.faceoffStore = [
         });
       }
     } catch (err) {
-      console.log(err);
       //throw error in json response with status 500.
       return apiResponse.ErrorResponse(res, err);
     }
@@ -157,9 +155,9 @@ exports.faceoffUpdate = [
     .trim()
     .custom((value, { req }) => {
       return Faceoff.findOne({
-        isbn: value,
-        user: req.user._id,
-        _id: { $ne: req.params.id }
+        id: value,
+        matchId: req.params.id,
+        creator: req.user._id
       }).then(Faceoff => {
         if (Faceoff) {
           return Promise.reject("Faceoff already exist with this ISBN no.");
@@ -242,43 +240,44 @@ exports.faceoffUpdate = [
 exports.faceoffDelete = [
   auth,
   function(req, res) {
-    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
-      return apiResponse.validationErrorWithData(
-        res,
-        "Invalid Error.",
-        "Invalid ID"
-      );
-    }
     try {
-      Faceoff.findById(req.params.id, function(err, foundFaceoff) {
-        if (foundFaceoff === null) {
-          return apiResponse.notFoundResponse(
-            res,
-            "Faceoff with this id does not exist"
-          );
-        } else {
-          //Check authorized user
-          if (foundFaceoff.user.toString() !== req.user._id) {
-            return apiResponse.unauthorizedResponse(
-              res,
-              "You are not authorized to do this operation."
-            );
-          } else {
-            //delete Faceoff.
-            Faceoff.findByIdAndRemove(req.params.id, function(err) {
-              if (err) {
-                return apiResponse.ErrorResponse(res, err);
+      if (!req.user || !acceptedRoles.includes(req.user.role)) {
+        return apiResponse.unauthorizedResponse(
+          res,
+          "Not authorized for this operation.",
+          {}
+        );
+      }
+      FaceoffModel.findOne({
+        matchId: req.params.id,
+        creator: req.user._id
+      }).then(Faceoff => {
+        if (Faceoff) {
+          FaceoffModel.findOneAndDelete({ matchId: req.params.id }).then(
+            Faceoff => {
+              if (Faceoff === null) {
+                return apiResponse.notFoundResponse(
+                  res,
+                  "Faceoff with this id does not exist"
+                );
               } else {
                 return apiResponse.successResponse(
                   res,
                   "Faceoff delete Success."
                 );
               }
-            });
-          }
+            }
+          );
+        } else {
+          return apiResponse.unauthorizedResponse(
+            res,
+            "Not authorized for this operation.",
+            {}
+          );
         }
       });
     } catch (err) {
+      console.log(err);
       //throw error in json response with status 500.
       return apiResponse.ErrorResponse(res, err);
     }

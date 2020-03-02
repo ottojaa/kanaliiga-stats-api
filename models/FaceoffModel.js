@@ -42,6 +42,7 @@ var MatchSchema = new mongoose.Schema({
 
 var FaceoffSchema = new mongoose.Schema(
   {
+    creator: String,
     matchId: { type: String, required: true },
     stageId: { type: String, required: true },
     date: { type: String, required: true },
