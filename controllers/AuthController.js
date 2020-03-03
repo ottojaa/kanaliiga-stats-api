@@ -275,7 +275,7 @@ exports.verifyConfirm = [
         var query = { email: req.body.email };
         UserModel.findOne(query).then(user => {
           if (user) {
-            //Check already confirm or not.
+            //Check already confirmed or not.
             if (!user.isConfirmed) {
               //Check account confirmation.
               if (user.confirmOTP == req.body.otp) {
@@ -283,13 +283,17 @@ exports.verifyConfirm = [
                 UserModel.findOneAndUpdate(query, {
                   isConfirmed: 1,
                   confirmOTP: null
-                }).catch(err => {
-                  return apiResponse.ErrorResponse(res, err);
-                });
-                return apiResponse.successResponse(
-                  res,
-                  "Account confirmation success!"
-                );
+                })
+                  .then(userData => {
+                    return apiResponse.successResponseWithData(
+                      res,
+                      "Account confirmation success!",
+                      userData
+                    );
+                  })
+                  .catch(err => {
+                    return apiResponse.ErrorResponse(res, err);
+                  });
               } else {
                 return apiResponse.unauthorizedResponse(
                   res,
