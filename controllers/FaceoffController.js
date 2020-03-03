@@ -245,13 +245,18 @@ exports.faceoffDelete = [
         return apiResponse.unauthorizedResponse(
           res,
           "Not authorized for this operation.",
-          {}
+          { user: req.user }
         );
       }
-      FaceoffModel.findOne({
-        matchId: req.params.id,
-        creator: req.user._id
-      }).then(Faceoff => {
+      const promise =
+        req.user.role === "ADMIN"
+          ? FaceoffModel.findOne({ matchId: req.params.id })
+          : FaceoffModel.findOne({
+              matchId: req.params.id,
+              creator: req.user_id
+            });
+
+      promise.then(Faceoff => {
         if (Faceoff) {
           FaceoffModel.findOneAndDelete({ matchId: req.params.id }).then(
             Faceoff => {
@@ -271,12 +276,13 @@ exports.faceoffDelete = [
         } else {
           return apiResponse.unauthorizedResponse(
             res,
-            "Not authorized for this operation.",
+            "Not authorized for this operation",
             {}
           );
         }
       });
     } catch (err) {
+      console.log(err);
       //throw error in json response with status 500.
       return apiResponse.ErrorResponse(res, err);
     }
