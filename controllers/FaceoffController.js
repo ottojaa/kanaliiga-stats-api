@@ -1,6 +1,7 @@
 const FaceoffModel = require("../models/FaceoffModel");
 const { body, validationResult } = require("express-validator");
 const { sanitizeBody } = require("express-validator");
+const Parser = require("../helpers/replay-parser");
 const apiResponse = require("../helpers/apiResponse");
 const auth = require("../middlewares/jwt");
 var mongoose = require("mongoose");
@@ -281,6 +282,46 @@ exports.faceoffDelete = [
           );
         }
       });
+    } catch (err) {
+      console.log(err);
+      //throw error in json response with status 500.
+      return apiResponse.ErrorResponse(res, err);
+    }
+  }
+];
+
+////////////////////// REPLAY PARSER ///////////////////
+
+exports.replayParser = [
+  function(req, res) {
+    try {
+      const buffer = Buffer.from(req.body.data);
+      const result = Parser.parse(buffer);
+      if (result) {
+        return apiResponse.successResponseWithData(
+          res,
+          "Parse success",
+          result
+        );
+      } else {
+        return apiResponse.ErrorResponse(res, "Cannot parse replay file");
+      }
+
+      /* FaceoffModel.find({ stageId: req.query.stageId }).then(Faceoffs => {
+        if (Faceoffs.length > 0) {
+          return apiResponse.successResponseWithData(
+            res,
+            "Operation success",
+            Faceoffs.map(faceoff => faceoff.matchId)
+          );
+        } else {
+          return apiResponse.successResponseWithData(
+            res,
+            "Operation success",
+            []
+          );
+        }
+      }); */
     } catch (err) {
       console.log(err);
       //throw error in json response with status 500.
