@@ -4,6 +4,7 @@ const { sanitizeBody } = require("express-validator");
 const Parser = require("../helpers/replay-parser");
 const apiResponse = require("../helpers/apiResponse");
 const auth = require("../middlewares/jwt");
+const { cloneDeep } = require("lodash");
 var mongoose = require("mongoose");
 mongoose.set("useFindAndModify", false);
 
@@ -31,6 +32,75 @@ exports.faceoffList = [
           );
         }
       });
+    } catch (err) {
+      //throw error in json response with status 500.
+      return apiResponse.ErrorResponse(res, err);
+    }
+  }
+];
+
+function processData(data) {
+  const final = { total: [], average: [] };
+  const arr = [];
+  data.forEach(faceoff => {
+    faceoff.matches.forEach(teams => {
+      teams.teams.forEach(team => {
+        team.players.forEach(player => {
+          const index = arr.findIndex(exists => exists.name === player.name);
+          if (index > -1) {
+            arr[index].count += 1;
+            arr[index].score += player.score;
+            arr[index].goals += player.goals;
+            arr[index].assists += player.assists;
+            arr[index].shots += player.shots;
+            arr[index].saves += player.saves;
+          } else {
+            const playerObject = cloneDeep(player);
+            playerObject.count = 1;
+            arr.push(playerObject);
+          }
+        });
+      });
+    });
+  });
+  final.total = cloneDeep(arr);
+  arr.forEach(player => {
+    player.score =
+      Math.round((player.score / player.count + Number.EPSILON) * 100) / 100;
+    player.assists =
+      Math.round((player.assists / player.count + Number.EPSILON) * 100) / 100;
+    player.saves =
+      Math.round((player.saves / player.count + Number.EPSILON) * 100) / 100;
+    player.shots =
+      Math.round((player.shots / player.count + Number.EPSILON) * 100) / 100;
+    player.goals =
+      Math.round((player.goals / player.count + Number.EPSILON) * 100) / 100;
+  });
+  final.average = cloneDeep(arr);
+  return final;
+}
+
+exports.faceoffPlayerStats = [
+  function(req, res) {
+    try {
+      FaceoffModel.find({ stageId: req.query.stageId }, "matches.teams").then(
+        Faceoffs => {
+          if (Faceoffs.length > 0) {
+            const response = processData(Faceoffs);
+            return apiResponse.successResponseWithData(
+              res,
+              "Operation success",
+              response
+            );
+          } else {
+            return apiResponse.successResponseWithData(
+              res,
+              "Operation success",
+              []
+            );
+          }
+        }
+      );
     } catch (err) {
       //throw error in json response with status 500.
       return apiResponse.ErrorResponse(res, err);

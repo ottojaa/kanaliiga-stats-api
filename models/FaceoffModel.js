@@ -23,7 +23,8 @@ var PlayerSchema = new mongoose.Schema({
   assists: { type: Number, required: true },
   shots: { type: Number, required: true },
   saves: { type: Number, required: true },
-  teamName: { type: String, required: true }
+  teamName: { type: String, required: true },
+  count: { type: Number, required: false }
 });
 
 var TeamSchema = new mongoose.Schema({

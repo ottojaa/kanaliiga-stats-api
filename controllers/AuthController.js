@@ -8,6 +8,47 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const mailer = require("../helpers/mailer");
 const { constants } = require("../helpers/constants");
+const DiscordOauth2 = require("discord-oauth2");
+const oauth = new DiscordOauth2();
+
+const CLIENT_ID = process.env.CLIENT_ID;
+const CLIENT_SECRET = process.env.CLIENT_SECRET;
+const CLIENT_REDIRECT = process.env.CLIENT_REDIRECT;
+
+exports.discordAuth = [
+  function(req, res) {
+    try {
+      res.redirect(
+        `https://discordapp.com/api/oauth2/authorize?client_id=${CLIENT_ID}&scope=identify&response_type=code&redirect_uri=${CLIENT_REDIRECT}`
+      );
+    } catch (err) {
+      console.log(err);
+    }
+  }
+];
+exports.discordLogin = [
+  function(req, res) {
+    try {
+      oauth
+        .tokenRequest({
+          clientId: CLIENT_ID,
+          clientSecret: CLIENT_SECRET,
+
+          code: "query code",
+          scope: "identify",
+          grantType: "authorization_code",
+
+          redirectUri: CLIENT_REDIRECT
+        })
+        .catch(error => {
+          console.log(error);
+        })
+        .then(console.log);
+    } catch (err) {
+      console.log(err);
+    }
+  }
+];
 
 exports.findExistingEmail = [
   function(req, res) {
