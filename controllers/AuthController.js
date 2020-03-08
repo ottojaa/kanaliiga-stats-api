@@ -18,8 +18,11 @@ const CLIENT_REDIRECT = process.env.CLIENT_REDIRECT;
 exports.discordAuth = [
   function(req, res) {
     try {
-      res.redirect(
-        `https://discordapp.com/api/oauth2/authorize?client_id=${CLIENT_ID}&scope=identify&response_type=code&redirect_uri=${CLIENT_REDIRECT}`
+      const url = `https://discordapp.com/api/oauth2/authorize?client_id=${CLIENT_ID}&redirect_uri=${CLIENT_REDIRECT}&response_type=code&scope=identify`;
+      return apiResponse.successResponseWithData(
+        res,
+        "Redirect url received",
+        url
       );
     } catch (err) {
       console.log(err);
