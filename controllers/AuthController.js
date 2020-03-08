@@ -8,8 +8,6 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const mailer = require("../helpers/mailer");
 const { constants } = require("../helpers/constants");
-const DiscordOauth2 = require("discord-oauth2");
-const oauth = new DiscordOauth2();
 const fetch = require("node-fetch");
 const btoa = require("btoa");
 const { catchAsync } = require("../helpers/utility");
@@ -17,7 +15,9 @@ const { catchAsync } = require("../helpers/utility");
 const CLIENT_ID = process.env.CLIENT_ID;
 const CLIENT_SECRET = process.env.CLIENT_SECRET;
 const CLIENT_REDIRECT = process.env.CLIENT_REDIRECT;
-const redirect = encodeURIComponent(process.env.CLIENT_CALLBACK);
+const CLIENT_REDIRECT_LOCAL = process.env.CLIENT_REDIRECT_LOCAL;
+const CLIENT_CALLBACK_TEST = process.env.CLIENT_CALLBACK_TEST;
+const redirect = encodeURIComponent(CLIENT_REDIRECT);
 
 exports.discordCallback = [
   catchAsync(async (req, res) => {
@@ -34,44 +34,82 @@ exports.discordCallback = [
       }
     );
     const json = await response.json();
-    res.redirect(`/?token=${json.access_token}`);
+    const discordInternal = await fetch(
+      `https://discordapp.com/api/users/@me`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${json.access_token}`
+        }
+      }
+    );
+    const data = await discordInternal.json();
+    UserModel.findOne({ discordId: data.id }).then(user => {
+      if (user !== null) {
+        let userData = {
+          _id: user._id,
+          discordId: user.discordId,
+          username: user.username,
+          role: user.role
+        };
+        //Prepare JWT token for authentication
+        const jwtPayload = userData;
+        const jwtData = {
+          expiresIn: process.env.JWT_TIMEOUT_DURATION
+        };
+        const secret = process.env.JWT_SECRET;
+        //Generated JWT token with Payload and secret.
+        userData.token = jwt.sign(jwtPayload, secret, jwtData);
+        return apiResponse.successResponseWithData(
+          res,
+          "Login With OAUTH2 Success.",
+          userData
+        );
+      } else {
+        const user = new UserModel({
+          username: data.username,
+          role: "USER",
+          discordId: data.id
+        });
+        user.save(function(err) {
+          if (err) {
+            return apiResponse.ErrorResponse(res, err);
+          }
+          let userData = {
+            _id: user._id,
+            discordId: user.id,
+            username: user.username,
+            role: user.role
+          };
+          const jwtPayload = userData;
+          const jwtData = {
+            expiresIn: process.env.JWT_TIMEOUT_DURATION
+          };
+          const secret = process.env.JWT_SECRET;
+          //Generated JWT token with Payload and secret.
+          userData.token = jwt.sign(jwtPayload, secret, jwtData);
+          return apiResponse.successResponseWithData(
+            res,
+            "Discord login Success.",
+            userData
+          );
+        });
+      }
+    });
   })
 ];
 
 exports.discordAuth = [
   function(req, res) {
     try {
-      const url = `https://discordapp.com/api/oauth2/authorize?client_id=${CLIENT_ID}&scope=identify&response_type=code&redirect_uri=${CLIENT_REDIRECT_LOCAL}`;
+      const url = `https://discordapp.com/api/oauth2/authorize?client_id=${CLIENT_ID}&scope=identify&response_type=code&redirect_uri=${CLIENT_REDIRECT}`;
       return apiResponse.successResponseWithData(
         res,
         "Redirect url received",
         url
       );
     } catch (err) {
-      console.log(err);
-    }
-  }
-];
-exports.discordLogin = [
-  function(req, res) {
-    try {
-      oauth
-        .tokenRequest({
-          clientId: CLIENT_ID,
-          clientSecret: CLIENT_SECRET,
-
-          code: "query code",
-          scope: "identify",
-          grantType: "authorization_code",
-
-          redirectUri: CLIENT_REDIRECT
-        })
-        .catch(error => {
-          console.log(error);
-        })
-        .then(console.log);
-    } catch (err) {
-      console.log(err);
+      return apiResponse.ErrorResponse(res, err);
     }
   }
 ];
