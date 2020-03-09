@@ -8,6 +8,7 @@ const router = express.Router();
 
 router.get("/", FaceoffController.faceoffList);
 router.get("/player-stats", FaceoffController.faceoffPlayerStats);
+router.get("/stage-matches", FaceoffController.faceoffsForStage);
 router.get("/:id", FaceoffController.faceoffDetail);
 router.post("/", FaceoffController.faceoffStore);
 router.post("/parse", upload.single("file"), FaceoffController.replayParser);

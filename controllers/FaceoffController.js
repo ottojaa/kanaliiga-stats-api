@@ -108,6 +108,40 @@ exports.faceoffPlayerStats = [
   }
 ];
 
+exports.faceoffsForStage = [
+  function(req, res) {
+    try {
+      FaceoffModel.find({ stageId: req.query.stageId }, [
+        "participants",
+        "matchId",
+        "stageId",
+        "date"
+      ])
+        .sort("-date")
+        .exec()
+        .then(Faceoffs => {
+          if (Faceoffs.length > 0) {
+            return apiResponse.successResponseWithData(
+              res,
+              "Operation success",
+              Faceoffs
+            );
+          } else {
+            return apiResponse.successResponseWithData(
+              res,
+              "Operation success",
+              []
+            );
+          }
+        });
+    } catch (err) {
+      console.log(err);
+      //throw error in json response with status 500.
+      return apiResponse.ErrorResponse(res, err);
+    }
+  }
+];
+
 /**
  * Faceoff Detail.
  *
