@@ -118,6 +118,7 @@ exports.faceoffsForStage = [
         "date"
       ])
         .sort("-date")
+        .limit(5)
         .exec()
         .then(Faceoffs => {
           if (Faceoffs.length > 0) {
