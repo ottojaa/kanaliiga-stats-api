@@ -43,8 +43,8 @@ function processData(data) {
   const final = { total: [], average: [] };
   const arr = [];
   data.forEach(faceoff => {
-    faceoff.matches.forEach(teams => {
-      teams.teams.forEach(team => {
+    faceoff.matches.forEach(match => {
+      match.teams.forEach(team => {
         team.players.forEach(player => {
           const index = arr.findIndex(exists => exists.name === player.name);
           if (index > -1) {
@@ -63,6 +63,13 @@ function processData(data) {
       });
     });
   });
+  arr.forEach(player => {
+    if (player.goals && player.shots) {
+      player.shootingPercentage = (player.goals / player.shots) * 100;
+    } else {
+      player.shootingPercentage = 0;
+    }
+  });
   final.total = cloneDeep(arr);
   arr.forEach(player => {
     player.score =
@@ -78,6 +85,22 @@ function processData(data) {
   });
   final.average = cloneDeep(arr);
   return final;
+}
+
+function getFaceoffEntityWithShootingPercentage(faceoff) {
+  faceoff.matches.forEach(match => {
+    match.teams.forEach(match => {
+      match.players.forEach(player => {
+        if (player.goals && player.shots) {
+          player.shootingPercentage =
+            (player.goals / player.shots + Number.EPSILON) * 100;
+        } else {
+          player.shootingPercentage = 0;
+        }
+      });
+    });
+  });
+  return faceoff;
 }
 
 exports.faceoffPlayerStats = [
@@ -155,10 +178,11 @@ exports.faceoffDetail = [
     try {
       FaceoffModel.findOne({ matchId: req.params.id }).then(Faceoff => {
         if (Faceoff !== null) {
+          const response = getFaceoffEntityWithShootingPercentage(Faceoff);
           return apiResponse.successResponseWithData(
             res,
             "Faceoff found",
-            Faceoff
+            response
           );
         } else {
           return apiResponse.successResponseWithData(
