@@ -131,6 +131,96 @@ exports.faceoffPlayerStats = [
   }
 ];
 
+exports.stageTeamStats = [
+  function(req, res) {
+    try {
+      FaceoffModel.find({ stageId: req.query.stageId }, "participants").then(
+        Faceoffs => {
+          if (Faceoffs.length > 0) {
+            const response = formTeamEntities(Faceoffs);
+            return apiResponse.successResponseWithData(
+              res,
+              "Operation success",
+              response
+            );
+          } else {
+            return apiResponse.successResponseWithData(
+              res,
+              "Operation success",
+              []
+            );
+          }
+        }
+      );
+    } catch (err) {
+      //throw error in json response with status 500.
+      return apiResponse.ErrorResponse(res, err);
+    }
+  }
+];
+
+function formTeamEntities(teams) {
+  const final = [];
+  teams.forEach(team => {
+    const team_one_index = final.findIndex(
+      final => final.name === team.participants[0].participant[0].name
+    );
+    const team_two_index = final.findIndex(
+      final => final.name === team.participants[1].participant[0].name
+    );
+    if (team_one_index > -1) {
+      final[team_one_index] = {
+        ...final[team_one_index],
+        ...updateTeamScore(0, team, final[team_one_index])
+      };
+    } else {
+      final.push(createNewTeam(0, team));
+    }
+    if (team_two_index > -1) {
+      final[team_two_index] = {
+        ...final[team_two_index],
+        ...updateTeamScore(1, team, final[team_two_index])
+      };
+    } else {
+      final.push(createNewTeam(1, team));
+    }
+  });
+  final.forEach(team => {
+    team.plusMinus = team.scoreFor - team.scoreAgainst;
+  });
+  final.sort((a, b) => b.scoreFor - a.scoreFor);
+  return final;
+}
+
+function createNewTeam(index, team) {
+  const secondTeamIndex = index ? 0 : 1;
+  const current = team.participants[index];
+  return {
+    name: current.participant[0].name,
+    scoreFor: current.score,
+    scoreAgainst: team.participants[secondTeamIndex].score,
+    wins: current.result === "win" ? 1 : 0,
+    losses: current.result === "loss" ? 1 : 0,
+    forfeits: current.forfeit === "true" ? 1 : 0,
+    played: 1,
+    plusMinus: 0
+  };
+}
+
+function updateTeamScore(index, team, final) {
+  const secondTeamIndex = index ? 0 : 1;
+  const current = team.participants[index];
+  return {
+    scoreFor: (final.scoreFor += current.score),
+    scoreAgainst: (final.scoreAgainst +=
+      team.participants[secondTeamIndex].score),
+    wins: (final.wins += current.result === "win" ? 1 : 0),
+    losses: (final.losses += current.result === "loss" ? 1 : 0),
+    forfeits: (final.forfeits += current.forfeit === "true" ? 1 : 0),
+    played: (final.played += 1)
+  };
+}
+
 exports.faceoffsForStage = [
   function(req, res) {
     try {
