@@ -5,27 +5,43 @@ const auth = require("../middlewares/jwt");
 
 exports.findUsers = [
   auth,
-  function(req, res) {
-    if (req.user.role !== "admin") {
-      return apiResponse.ErrorResponse(res, err);
+  function (req, res) {
+    if (req.user.role !== "ADMIN") {
+      return apiResponse.ErrorResponse(res, "Not authorized.");
     }
     try {
-      UserModel.find({}).then(users => {
-        console.log(users);
+      UserModel.find({}).then((users) => {
         if (users !== null) {
-          return apiResponse.successResponseWithData(res, "No users found", {
-            taken: true
+          return apiResponse.successResponseWithData(res, "Users found", {
+            users,
           });
         } else {
-          console.log(users);
-          return apiResponse.successResponseWithData(res, "Users found", {
-            data: users
+          return apiResponse.successResponseWithData(res, "No users found", {
+            data: [],
           });
         }
       });
     } catch (err) {
-      //throw error in json response with status 500.
       return apiResponse.ErrorResponse(res, err);
     }
-  }
+  },
+];
+
+exports.updateUserRole = [
+  auth,
+  function (req, res) {
+    if (req.user.role !== "ADMIN") {
+      return apiResponse.ErrorResponse(res, "Not authorized.");
+    }
+    try {
+      UserModel.findByIdAndUpdate(
+        { _id: req.body.id },
+        { role: req.body.role }
+      ).then(() => {
+        return apiResponse.successResponse(res, "Success");
+      });
+    } catch (err) {
+      return apiResponse.ErrorResponse(res, err);
+    }
+  },
 ];
