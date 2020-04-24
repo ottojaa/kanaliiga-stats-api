@@ -27,6 +27,7 @@ var PlayerSchema = new mongoose.Schema({
   shots: { type: Number, required: true },
   saves: { type: Number, required: true },
   teamName: { type: String, required: true },
+  datePlayed: { type: String, required: false },
   count: { type: Number, required: false },
   shootingPercentage: { type: Number, required: false },
 });
