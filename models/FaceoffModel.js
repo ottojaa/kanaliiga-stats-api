@@ -36,7 +36,7 @@ var PlayerSchema = new mongoose.Schema({
 
 var TeamSchema = new mongoose.Schema({
   score: { type: Number, required: true },
-  teamId: { type: Number, required: true },
+  teamId: { type: String, required: true },
   stageId: { type: String, required: true },
   tournamentId: { type: String, required: true },
   name: { type: String, required: true },
