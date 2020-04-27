@@ -20,6 +20,8 @@ var PlayerSchema = new mongoose.Schema({
   teamId: { type: String, require: false },
   platform: { type: String, required: false },
   onlineId: { type: String, required: false },
+  stageId: { type: String, required: false },
+  tournamentId: { type: String, required: false },
   name: { type: String, required: true },
   score: { type: Number, required: true },
   goals: { type: Number, required: true },
@@ -35,6 +37,8 @@ var PlayerSchema = new mongoose.Schema({
 var TeamSchema = new mongoose.Schema({
   score: { type: Number, required: true },
   teamId: { type: Number, required: true },
+  stageId: { type: String, required: true },
+  tournamentId: { type: String, required: true },
   name: { type: String, required: true },
   result: { type: String, required: true },
   players: [PlayerSchema],
