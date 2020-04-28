@@ -1,4 +1,5 @@
 const FaceoffModel = require("../models/FaceoffModel");
+const ReplayFilesModel = require("../models/ReplayFilesModel");
 const { body, validationResult } = require("express-validator");
 const { sanitizeBody } = require("express-validator");
 const Parser = require("../helpers/replay-parser");
@@ -15,14 +16,14 @@ const acceptedRoles = ["ADMIN", "MAINTAINER"];
  * @returns {Object}
  */
 exports.faceoffList = [
-  function(req, res) {
+  function (req, res) {
     try {
-      FaceoffModel.find({ stageId: req.query.stageId }).then(Faceoffs => {
+      FaceoffModel.find({ stageId: req.query.stageId }).then((Faceoffs) => {
         if (Faceoffs.length > 0) {
           return apiResponse.successResponseWithData(
             res,
             "Operation success",
-            Faceoffs.map(faceoff => faceoff.matchId)
+            Faceoffs.map((faceoff) => faceoff.matchId)
           );
         } else {
           return apiResponse.successResponseWithData(
@@ -36,17 +37,17 @@ exports.faceoffList = [
       //throw error in json response with status 500.
       return apiResponse.ErrorResponse(res, err);
     }
-  }
+  },
 ];
 
 function processData(data) {
   const final = { total: [], average: [] };
   const arr = [];
-  data.forEach(faceoff => {
-    faceoff.matches.forEach(match => {
-      match.teams.forEach(team => {
-        team.players.forEach(player => {
-          const index = arr.findIndex(exists => exists.name === player.name);
+  data.forEach((faceoff) => {
+    faceoff.matches.forEach((match) => {
+      match.teams.forEach((team) => {
+        team.players.forEach((player) => {
+          const index = arr.findIndex((exists) => exists.name === player.name);
           if (index > -1) {
             arr[index].count += 1;
             arr[index].score += player.score;
@@ -63,7 +64,7 @@ function processData(data) {
       });
     });
   });
-  arr.forEach(player => {
+  arr.forEach((player) => {
     if (player.goals && player.shots) {
       player.shootingPercentage = (player.goals / player.shots) * 100;
     } else {
@@ -71,7 +72,7 @@ function processData(data) {
     }
   });
   final.total = cloneDeep(arr);
-  arr.forEach(player => {
+  arr.forEach((player) => {
     player.score =
       Math.round((player.score / player.count + Number.EPSILON) * 100) / 100;
     player.assists =
@@ -88,9 +89,9 @@ function processData(data) {
 }
 
 function getFaceoffEntityWithShootingPercentage(faceoff) {
-  faceoff.matches.forEach(match => {
-    match.teams.forEach(match => {
-      match.players.forEach(player => {
+  faceoff.matches.forEach((match) => {
+    match.teams.forEach((match) => {
+      match.players.forEach((player) => {
         if (player.goals && player.shots) {
           player.shootingPercentage =
             (player.goals / player.shots + Number.EPSILON) * 100;
@@ -104,10 +105,10 @@ function getFaceoffEntityWithShootingPercentage(faceoff) {
 }
 
 exports.faceoffPlayerStats = [
-  function(req, res) {
+  function (req, res) {
     try {
       FaceoffModel.find({ stageId: req.query.stageId }, "matches.teams").then(
-        Faceoffs => {
+        (Faceoffs) => {
           if (Faceoffs.length > 0) {
             const response = processData(Faceoffs);
             return apiResponse.successResponseWithData(
@@ -128,14 +129,14 @@ exports.faceoffPlayerStats = [
       //throw error in json response with status 500.
       return apiResponse.ErrorResponse(res, err);
     }
-  }
+  },
 ];
 
 exports.stageTeamStats = [
-  function(req, res) {
+  function (req, res) {
     try {
       FaceoffModel.find({ stageId: req.query.stageId }, "participants").then(
-        Faceoffs => {
+        (Faceoffs) => {
           if (Faceoffs.length > 0) {
             const response = formTeamEntities(Faceoffs);
             return apiResponse.successResponseWithData(
@@ -156,22 +157,22 @@ exports.stageTeamStats = [
       //throw error in json response with status 500.
       return apiResponse.ErrorResponse(res, err);
     }
-  }
+  },
 ];
 
 function formTeamEntities(teams) {
   const final = [];
-  teams.forEach(team => {
+  teams.forEach((team) => {
     const team_one_index = final.findIndex(
-      final => final.name === team.participants[0].participant[0].name
+      (final) => final.name === team.participants[0].participant[0].name
     );
     const team_two_index = final.findIndex(
-      final => final.name === team.participants[1].participant[0].name
+      (final) => final.name === team.participants[1].participant[0].name
     );
     if (team_one_index > -1) {
       final[team_one_index] = {
         ...final[team_one_index],
-        ...updateTeamScore(0, team, final[team_one_index])
+        ...updateTeamScore(0, team, final[team_one_index]),
       };
     } else {
       final.push(createNewTeam(0, team));
@@ -179,13 +180,13 @@ function formTeamEntities(teams) {
     if (team_two_index > -1) {
       final[team_two_index] = {
         ...final[team_two_index],
-        ...updateTeamScore(1, team, final[team_two_index])
+        ...updateTeamScore(1, team, final[team_two_index]),
       };
     } else {
       final.push(createNewTeam(1, team));
     }
   });
-  final.forEach(team => {
+  final.forEach((team) => {
     team.plusMinus = team.scoreFor - team.scoreAgainst;
   });
   final.sort((a, b) => b.scoreFor - a.scoreFor);
@@ -203,7 +204,7 @@ function createNewTeam(index, team) {
     losses: current.result === "loss" ? 1 : 0,
     forfeits: current.forfeit === "true" ? 1 : 0,
     played: 1,
-    plusMinus: 0
+    plusMinus: 0,
   };
 }
 
@@ -217,23 +218,23 @@ function updateTeamScore(index, team, final) {
     wins: (final.wins += current.result === "win" ? 1 : 0),
     losses: (final.losses += current.result === "loss" ? 1 : 0),
     forfeits: (final.forfeits += current.forfeit === "true" ? 1 : 0),
-    played: (final.played += 1)
+    played: (final.played += 1),
   };
 }
 
 exports.faceoffsForStage = [
-  function(req, res) {
+  function (req, res) {
     try {
       FaceoffModel.find({ stageId: req.query.stageId }, [
         "participants",
         "matchId",
         "stageId",
-        "date"
+        "date",
       ])
         .sort("-date")
         .limit(5)
         .exec()
-        .then(Faceoffs => {
+        .then((Faceoffs) => {
           if (Faceoffs.length > 0) {
             return apiResponse.successResponseWithData(
               res,
@@ -253,7 +254,7 @@ exports.faceoffsForStage = [
       //throw error in json response with status 500.
       return apiResponse.ErrorResponse(res, err);
     }
-  }
+  },
 ];
 
 /**
@@ -264,9 +265,9 @@ exports.faceoffsForStage = [
  * @returns {Object}
  */
 exports.faceoffDetail = [
-  function(req, res) {
+  function (req, res) {
     try {
-      FaceoffModel.findOne({ matchId: req.params.id }).then(Faceoff => {
+      FaceoffModel.findOne({ matchId: req.params.id }).then((Faceoff) => {
         if (Faceoff !== null) {
           const response = getFaceoffEntityWithShootingPercentage(Faceoff);
           return apiResponse.successResponseWithData(
@@ -286,7 +287,7 @@ exports.faceoffDetail = [
       //throw error in json response with status 500.
       return apiResponse.ErrorResponse(res, err);
     }
-  }
+  },
 ];
 
 /**
@@ -303,8 +304,8 @@ exports.faceoffStore = [
   body("matchId", "MatchId must not be empty.")
     .isLength({ min: 1 })
     .trim()
-    .custom(value => {
-      return FaceoffModel.findOne({ matchId: value }).then(Faceoff => {
+    .custom((value) => {
+      return FaceoffModel.findOne({ matchId: value }).then((Faceoff) => {
         if (Faceoff) {
           return Promise.reject("Faceoff with this id already exists.");
         }
@@ -325,13 +326,13 @@ exports.faceoffStore = [
         stageId: req.body.stageId,
         creator: req.user._id,
         participants: req.body.participants,
-        date: req.body.date
+        date: req.body.date,
       });
-      req.body.matches.forEach(match => {
+      req.body.matches.forEach((match) => {
         Faceoff.matches.push({
           matchIndex: match.matchIndex,
           date: match.date,
-          teams: match.teams
+          teams: match.teams,
         });
       });
 
@@ -343,20 +344,42 @@ exports.faceoffStore = [
         );
       } else {
         //Save Faceoff.
-        Faceoff.save(function(err) {
+        Faceoff.save(function (err) {
           if (err) {
             return apiResponse.ErrorResponse(res, err);
           }
-          const msg =
-            "Faceoff added successfully, MatchId: " + req.body.matchId;
-          return apiResponse.successResponse(res, msg);
+          const faceoffId = req.body.matchId;
+          return apiResponse.successResponseWithData(
+            res,
+            "Faceoff upload success.",
+            faceoffId
+          );
         });
       }
     } catch (err) {
       //throw error in json response with status 500.
       return apiResponse.ErrorResponse(res, err);
     }
-  }
+  },
+];
+
+exports.faceoffReplayUpload = [
+  auth,
+  (req, res) => {
+    try {
+      if (!req.user || !acceptedRoles.includes(req.user.role)) {
+        return apiResponse.unauthorizedResponse(
+          res,
+          "Not authorized for this operation.",
+          {}
+        );
+      }
+    } catch (err) {
+      console.log(err);
+      //throw error in json response with status 500.
+      return apiResponse.ErrorResponse(res, err);
+    }
+  },
 ];
 
 /**
@@ -377,8 +400,8 @@ exports.faceoffUpdate = [
       return Faceoff.findOne({
         id: value,
         matchId: req.params.id,
-        creator: req.user._id
-      }).then(Faceoff => {
+        creator: req.user._id,
+      }).then((Faceoff) => {
         if (Faceoff) {
           return Promise.reject("Faceoff already exist with this ISBN no.");
         }
@@ -392,7 +415,7 @@ exports.faceoffUpdate = [
         title: req.body.title,
         description: req.body.description,
         isbn: req.body.isbn,
-        _id: req.params.id
+        _id: req.params.id,
       });
 
       if (!errors.isEmpty()) {
@@ -409,7 +432,7 @@ exports.faceoffUpdate = [
             "Invalid ID"
           );
         } else {
-          Faceoff.findById(req.params.id, function(err, foundFaceoff) {
+          Faceoff.findById(req.params.id, function (err, foundFaceoff) {
             if (foundFaceoff === null) {
               return apiResponse.notFoundResponse(
                 res,
@@ -424,7 +447,7 @@ exports.faceoffUpdate = [
                 );
               } else {
                 //update Faceoff.
-                Faceoff.findByIdAndUpdate(req.params.id, Faceoff, {}, function(
+                Faceoff.findByIdAndUpdate(req.params.id, Faceoff, {}, function (
                   err
                 ) {
                   if (err) {
@@ -447,7 +470,7 @@ exports.faceoffUpdate = [
       //throw error in json response with status 500.
       return apiResponse.ErrorResponse(res, err);
     }
-  }
+  },
 ];
 
 /**
@@ -459,7 +482,7 @@ exports.faceoffUpdate = [
  */
 exports.faceoffDelete = [
   auth,
-  function(req, res) {
+  function (req, res) {
     try {
       if (!req.user || !acceptedRoles.includes(req.user.role)) {
         return apiResponse.unauthorizedResponse(
@@ -473,23 +496,34 @@ exports.faceoffDelete = [
           ? FaceoffModel.findOne({ matchId: req.params.id })
           : FaceoffModel.findOne({
               matchId: req.params.id,
-              creator: req.user_id
+              creator: req.user_id,
             });
 
-      promise.then(Faceoff => {
+      promise.then((Faceoff) => {
         if (Faceoff) {
           FaceoffModel.findOneAndDelete({ matchId: req.params.id }).then(
-            Faceoff => {
+            (Faceoff) => {
               if (Faceoff === null) {
                 return apiResponse.notFoundResponse(
                   res,
                   "Faceoff with this id does not exist"
                 );
               } else {
-                return apiResponse.successResponse(
-                  res,
-                  "Faceoff delete Success."
-                );
+                ReplayFilesModel.findOneAndDelete({
+                  matchId: req.params.id,
+                }).then((Replay) => {
+                  if (Replay === null) {
+                    return apiResponse.successResponse(
+                      res,
+                      "Faceoff delete Success."
+                    );
+                  } else {
+                    return apiResponse.successResponse(
+                      res,
+                      "Faceoff and replay delete Success."
+                    );
+                  }
+                });
               }
             }
           );
@@ -506,13 +540,13 @@ exports.faceoffDelete = [
       //throw error in json response with status 500.
       return apiResponse.ErrorResponse(res, err);
     }
-  }
+  },
 ];
 
 ////////////////////// REPLAY PARSER ///////////////////
 
 exports.replayParser = [
-  function(req, res) {
+  function (req, res) {
     try {
       const buffer = Buffer.from(req.body.data);
       const result = Parser.parse(buffer);
@@ -525,26 +559,54 @@ exports.replayParser = [
       } else {
         return apiResponse.ErrorResponse(res, "Cannot parse replay file");
       }
-
-      /* FaceoffModel.find({ stageId: req.query.stageId }).then(Faceoffs => {
-        if (Faceoffs.length > 0) {
-          return apiResponse.successResponseWithData(
-            res,
-            "Operation success",
-            Faceoffs.map(faceoff => faceoff.matchId)
-          );
-        } else {
-          return apiResponse.successResponseWithData(
-            res,
-            "Operation success",
-            []
-          );
-        }
-      }); */
     } catch (err) {
       console.log(err);
       //throw error in json response with status 500.
       return apiResponse.ErrorResponse(res, err);
     }
-  }
+  },
+];
+
+exports.replayParserV2 = [
+  function (req, res) {
+    try {
+      const buffers = [];
+      req.body.files.forEach((buffer) => {
+        buffers.push(Buffer.from(buffer));
+      });
+      const parsed = [];
+      buffers.forEach((buffer) => {
+        parsed.push(Parser.parse(buffer));
+      });
+      if (parsed && parsed.length) {
+        const dateIndex = parsed[0].properties.findIndex(
+          (property) => property.name === "Date"
+        );
+        const date = parsed[0].properties[dateIndex].more.details.value;
+        const ReplayFiles = new ReplayFilesModel({
+          files: req.body.files,
+          matchId: req.query.matchId,
+          tournamentId: req.query.tournamentId,
+          matchName: req.body.matchName,
+          date: date,
+        });
+        ReplayFiles.save(function (err) {
+          if (err) {
+            return apiResponse.ErrorResponse(res, err);
+          }
+          return apiResponse.successResponseWithData(
+            res,
+            "Replay files uploaded succesfully. Parsed replay data:",
+            parsed
+          );
+        });
+      } else {
+        return apiResponse.ErrorResponse(res, "Cannot parse replay file");
+      }
+    } catch (err) {
+      console.log(err);
+      //throw error in json response with status 500.
+      return apiResponse.ErrorResponse(res, err);
+    }
+  },
 ];
