@@ -55,6 +55,7 @@ var FaceoffSchema = new mongoose.Schema(
     creator: String,
     matchId: { type: String, required: true },
     stageId: { type: String, required: true },
+    tournamentId: { type: String, required: true },
     date: { type: String, required: true },
     participants: [ParticipantSchema],
     matches: [MatchSchema],
