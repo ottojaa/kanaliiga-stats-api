@@ -324,6 +324,7 @@ exports.faceoffStore = [
       var Faceoff = new FaceoffModel({
         matchId: req.body.matchId,
         stageId: req.body.stageId,
+        tournamentId: req.body.tournamentId,
         creator: req.user._id,
         participants: req.body.participants,
         date: req.body.date,
