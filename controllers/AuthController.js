@@ -29,8 +29,8 @@ exports.discordCallback = [
       {
         method: "POST",
         headers: {
-          Authorization: `Basic ${creds}`
-        }
+          Authorization: `Basic ${creds}`,
+        },
       }
     );
     const json = await response.json();
@@ -39,27 +39,24 @@ exports.discordCallback = [
       {
         method: "GET",
         headers: {
-          Authorization: `Bearer ${json.access_token}`
-        }
+          Authorization: `Bearer ${json.access_token}`,
+        },
       }
     );
     const data = await discordInternal.json();
-    UserModel.findOne({ discordId: data.id }).then(user => {
+    UserModel.findOne({ discordId: data.id }).then((user) => {
       if (user !== null) {
         let userData = {
           _id: user._id,
           discordId: user.discordId,
           username: user.username,
-          role: user.role
+          role: user.role,
         };
         //Prepare JWT token for authentication
         const jwtPayload = userData;
-        const jwtData = {
-          expiresIn: process.env.JWT_TIMEOUT_DURATION
-        };
         const secret = process.env.JWT_SECRET;
         //Generated JWT token with Payload and secret.
-        userData.token = jwt.sign(jwtPayload, secret, jwtData);
+        userData.token = jwt.sign(jwtPayload, secret);
         return apiResponse.successResponseWithData(
           res,
           "Login With OAUTH2 Success.",
@@ -69,9 +66,9 @@ exports.discordCallback = [
         const user = new UserModel({
           username: data.username,
           role: "USER",
-          discordId: data.id
+          discordId: data.id,
         });
-        user.save(function(err) {
+        user.save(function (err) {
           if (err) {
             return apiResponse.ErrorResponse(res, err);
           }
@@ -79,15 +76,12 @@ exports.discordCallback = [
             _id: user._id,
             discordId: user.id,
             username: user.username,
-            role: user.role
+            role: user.role,
           };
           const jwtPayload = userData;
-          const jwtData = {
-            expiresIn: process.env.JWT_TIMEOUT_DURATION
-          };
           const secret = process.env.JWT_SECRET;
           //Generated JWT token with Payload and secret.
-          userData.token = jwt.sign(jwtPayload, secret, jwtData);
+          userData.token = jwt.sign(jwtPayload, secret);
           return apiResponse.successResponseWithData(
             res,
             "Discord login Success.",
@@ -96,11 +90,11 @@ exports.discordCallback = [
         });
       }
     });
-  })
+  }),
 ];
 
 exports.discordAuth = [
-  function(req, res) {
+  function (req, res) {
     try {
       const url = `https://discordapp.com/api/oauth2/authorize?client_id=${CLIENT_ID}&scope=identify&response_type=code&redirect_uri=${CLIENT_REDIRECT}`;
       return apiResponse.successResponseWithData(
@@ -111,14 +105,14 @@ exports.discordAuth = [
     } catch (err) {
       return apiResponse.ErrorResponse(res, err);
     }
-  }
+  },
 ];
 
 exports.findExistingEmail = [
-  function(req, res) {
+  function (req, res) {
     try {
       console.log(req.query.email);
-      UserModel.findOne({ email: req.query.email }).then(email => {
+      UserModel.findOne({ email: req.query.email }).then((email) => {
         if (email !== null) {
           return apiResponse.successResponseWithData(
             res,
@@ -137,13 +131,13 @@ exports.findExistingEmail = [
       //throw error in json response with status 500.
       return apiResponse.ErrorResponse(res, err);
     }
-  }
+  },
 ];
 
 exports.findExistingUser = [
-  function(req, res) {
+  function (req, res) {
     try {
-      UserModel.findOne({ username: req.query.username }).then(username => {
+      UserModel.findOne({ username: req.query.username }).then((username) => {
         if (username !== null) {
           return apiResponse.successResponseWithData(
             res,
@@ -162,7 +156,7 @@ exports.findExistingUser = [
       //throw error in json response with status 500.
       return apiResponse.ErrorResponse(res, err);
     }
-  }
+  },
 ];
 
 /**
@@ -182,8 +176,8 @@ exports.register = [
     .withMessage("User name must be specified.")
     .isAlphanumeric()
     .withMessage("User name has non-alphanumeric characters.")
-    .custom(value => {
-      return UserModel.findOne({ username: value }).then(user => {
+    .custom((value) => {
+      return UserModel.findOne({ username: value }).then((user) => {
         if (user) {
           return Promise.reject("Username already in use");
         }
@@ -212,7 +206,7 @@ exports.register = [
         );
       } else {
         //hash input password
-        bcrypt.hash(req.body.password, 10, function(err, hash) {
+        bcrypt.hash(req.body.password, 10, function (err, hash) {
           // generate OTP for confirmation
           let otp = utility.randomNumber(4);
           // Create User object with escaped and trimmed data
@@ -221,7 +215,7 @@ exports.register = [
             email: req.body.email,
             password: hash,
             role: "USER",
-            confirmOTP: otp
+            confirmOTP: otp,
           });
           // Html email body
           let html =
@@ -234,16 +228,16 @@ exports.register = [
               "Confirm Account",
               html
             )
-            .then(function() {
+            .then(function () {
               // Save user.
-              user.save(function(err) {
+              user.save(function (err) {
                 if (err) {
                   return apiResponse.ErrorResponse(res, err);
                 }
                 let userData = {
                   _id: user._id,
                   username: user.username,
-                  email: user.email
+                  email: user.email,
                 };
                 return apiResponse.successResponseWithData(
                   res,
@@ -252,7 +246,7 @@ exports.register = [
                 );
               });
             })
-            .catch(err => {
+            .catch((err) => {
               console.log(err);
               return apiResponse.ErrorResponse(res, err);
             });
@@ -262,7 +256,7 @@ exports.register = [
       //throw error in json response with status 500.
       return apiResponse.ErrorResponse(res, err);
     }
-  }
+  },
 ];
 
 /**
@@ -291,10 +285,10 @@ exports.login = [
           errors.array()
         );
       } else {
-        UserModel.findOne({ email: req.body.email }).then(user => {
+        UserModel.findOne({ email: req.body.email }).then((user) => {
           if (user) {
             //Compare given password with db's hash.
-            bcrypt.compare(req.body.password, user.password, function(
+            bcrypt.compare(req.body.password, user.password, function (
               err,
               same
             ) {
@@ -307,16 +301,13 @@ exports.login = [
                       _id: user._id,
                       username: user.username,
                       role: user.role,
-                      email: user.email
+                      email: user.email,
                     };
                     //Prepare JWT token for authentication
                     const jwtPayload = userData;
-                    const jwtData = {
-                      expiresIn: process.env.JWT_TIMEOUT_DURATION
-                    };
                     const secret = process.env.JWT_SECRET;
                     //Generated JWT token with Payload and secret.
-                    userData.token = jwt.sign(jwtPayload, secret, jwtData);
+                    userData.token = jwt.sign(jwtPayload, secret);
                     return apiResponse.successResponseWithData(
                       res,
                       "Login Success.",
@@ -355,7 +346,7 @@ exports.login = [
     } catch (err) {
       return apiResponse.ErrorResponse(res, err);
     }
-  }
+  },
 ];
 
 /**
@@ -378,7 +369,7 @@ exports.verifyConfirm = [
         );
       } else {
         var query = { email: req.body.email };
-        UserModel.findOne(query).then(user => {
+        UserModel.findOne(query).then((user) => {
           if (user) {
             //Check already confirmed or not.
             if (!user.isConfirmed) {
@@ -387,16 +378,16 @@ exports.verifyConfirm = [
                 //Update user as confirmed
                 UserModel.findOneAndUpdate(query, {
                   isConfirmed: 1,
-                  confirmOTP: null
+                  confirmOTP: null,
                 })
-                  .then(userData => {
+                  .then((userData) => {
                     return apiResponse.successResponseWithData(
                       res,
                       "Account confirmation success!",
                       userData
                     );
                   })
-                  .catch(err => {
+                  .catch((err) => {
                     return apiResponse.ErrorResponse(res, err);
                   });
               } else {
@@ -423,7 +414,7 @@ exports.verifyConfirm = [
     } catch (err) {
       return apiResponse.ErrorResponse(res, err);
     }
-  }
+  },
 ];
 
 /**
@@ -452,7 +443,7 @@ exports.resendConfirmOtp = [
         );
       } else {
         var query = { email: req.body.email };
-        UserModel.findOne(query).then(user => {
+        UserModel.findOne(query).then((user) => {
           if (user) {
             //Check already confirm or not.
             if (!user.isConfirmed) {
@@ -469,11 +460,11 @@ exports.resendConfirmOtp = [
                   "Confirm Account",
                   html
                 )
-                .then(function() {
+                .then(function () {
                   user.isConfirmed = 0;
                   user.confirmOTP = otp;
                   // Save user.
-                  user.save(function(err) {
+                  user.save(function (err) {
                     if (err) {
                       return apiResponse.ErrorResponse(res, err);
                     }
@@ -500,5 +491,5 @@ exports.resendConfirmOtp = [
     } catch (err) {
       return apiResponse.ErrorResponse(res, err);
     }
-  }
+  },
 ];
