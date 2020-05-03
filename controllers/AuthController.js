@@ -93,6 +93,24 @@ exports.discordCallback = [
   }),
 ];
 
+exports.checkSession = [
+  function (req, res) {
+    try {
+      const token = req.params.token;
+      const secret = process.env.JWT_SECRET;
+      jwt.verify(token, secret, (err, verifiedJwt) => {
+        if (err) {
+          res.send(err.message);
+        } else {
+          res.send(verifiedJwt);
+        }
+      });
+    } catch (err) {
+      return apiResponse.ErrorResponse(res, err);
+    }
+  },
+];
+
 exports.discordAuth = [
   function (req, res) {
     try {

@@ -547,6 +547,7 @@ exports.faceoffDelete = [
 ////////////////////// REPLAY PARSER ///////////////////
 
 exports.replayParser = [
+  auth,
   function (req, res) {
     try {
       const buffer = Buffer.from(req.body.data);
@@ -591,16 +592,28 @@ exports.replayParserV2 = [
           matchName: req.body.matchName,
           date: date,
         });
-        ReplayFiles.save(function (err) {
-          if (err) {
-            return apiResponse.ErrorResponse(res, err);
+        ReplayFilesModel.findOne({ matchId: req.query.matchId }).then(
+          (Replays) => {
+            if (Replays === null) {
+              ReplayFiles.save(function (err) {
+                if (err) {
+                  return apiResponse.ErrorResponse(res, err);
+                }
+                return apiResponse.successResponseWithData(
+                  res,
+                  "Replay files uploaded succesfully. Parsed replay data:",
+                  parsed
+                );
+              });
+            } else {
+              return apiResponse.successResponseWithData(
+                res,
+                "Replay files found for this match. Parsed replay data:",
+                parsed
+              );
+            }
           }
-          return apiResponse.successResponseWithData(
-            res,
-            "Replay files uploaded succesfully. Parsed replay data:",
-            parsed
-          );
-        });
+        );
       } else {
         return apiResponse.ErrorResponse(res, "Cannot parse replay file");
       }
