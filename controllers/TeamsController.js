@@ -8,7 +8,7 @@ exports.findTeams = [
       FaceoffModel.find({
         "participants.participant.id": req.query.teamId,
       })
-        .sort("-updatedAt")
+        .sort("-date")
         .then((teamStats) => {
           if (teamStats && teamStats.length) {
             const playerStats = getTeamPlayerData(teamStats, req.query.teamId);
