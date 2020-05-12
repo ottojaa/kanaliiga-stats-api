@@ -47,7 +47,15 @@ function processData(data) {
     faceoff.matches.forEach((match) => {
       match.teams.forEach((team) => {
         team.players.forEach((player) => {
-          const index = arr.findIndex((exists) => exists.name === player.name);
+          let index;
+          index = arr.findIndex(
+            (exists) =>
+              exists.onlineId.substring(0, 15) ===
+              player.onlineId.substring(0, 15)
+          );
+          if (index === -1) {
+            index = arr.findIndex((exists) => exists.name === player.name);
+          }
           if (index > -1) {
             arr[index].count += 1;
             arr[index].score += player.score;
