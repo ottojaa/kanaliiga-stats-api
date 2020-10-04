@@ -48,11 +48,7 @@ function processData(data) {
       match.teams.forEach((team) => {
         team.players.forEach((player) => {
           let index;
-          index = arr.findIndex(
-            (exists) =>
-              exists.onlineId.substring(0, 15) ===
-              player.onlineId.substring(0, 15)
-          );
+          index = arr.findIndex((exists) => player.onlineId && exists.onlineId && exists.onlineId.substring(0, 15) === player.onlineId.substring(0, 15));
           if (index === -1) {
             index = arr.findIndex((exists) => exists.name === player.name);
           }
