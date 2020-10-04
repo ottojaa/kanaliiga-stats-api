@@ -16,24 +16,35 @@ const CLIENT_ID = process.env.CLIENT_ID;
 const CLIENT_SECRET = process.env.CLIENT_SECRET;
 const CLIENT_REDIRECT = process.env.CLIENT_REDIRECT;
 const CLIENT_REDIRECT_LOCAL = process.env.CLIENT_REDIRECT_LOCAL;
-const CLIENT_CALLBACK_TEST = process.env.CLIENT_CALLBACK_TEST;
 const redirect = encodeURIComponent(CLIENT_REDIRECT);
 
 exports.discordCallback = [
   catchAsync(async (req, res) => {
     if (!req.query.code) throw new Error("NoCodeProvided");
     const code = req.query.code;
-    const creds = btoa(`${CLIENT_ID}:${CLIENT_SECRET}`);
+    let formData = {
+      'client_id': CLIENT_ID,
+      'client_secret': CLIENT_SECRET,
+      'grant_type': 'authorization_code',
+      'code': code,
+      'redirect_uri': CLIENT_REDIRECT,
+      'scope': 'identify'
+    }
+    params = _encode(formData)
     const response = await fetch(
-      `https://discordapp.com/api/oauth2/token?grant_type=authorization_code&code=${code}&redirect_uri=${redirect}`,
+      `https://discordapp.com/api/oauth2/token`,
       {
         method: "POST",
         headers: {
-          Authorization: `Basic ${creds}`,
+          'Content-Type': 'application/x-www-form-urlencoded'
         },
+        body: params
       }
     );
     const json = await response.json();
+    if(!json) {
+      return apiResponse.ErrorResponse(res, 'If you see this error, contact @rutkula#2543 in kanaliiga discord');
+    }
     const discordInternal = await fetch(
       `https://discordapp.com/api/users/@me`,
       {
@@ -93,6 +104,17 @@ exports.discordCallback = [
   }),
 ];
 
+function _encode(obj) {
+  let string = "";
+
+  for (const [key, value] of Object.entries(obj)) {
+    if (!value) continue;
+    string += `&${encodeURIComponent(key)}=${encodeURIComponent(value)}`;
+  }
+
+  return string.substring(1);
+}
+
 exports.checkSession = [
   function (req, res) {
     try {
@@ -114,7 +136,7 @@ exports.checkSession = [
 exports.discordAuth = [
   function (req, res) {
     try {
-      const url = `https://discordapp.com/api/oauth2/authorize?client_id=${CLIENT_ID}&scope=identify&response_type=code&redirect_uri=${CLIENT_REDIRECT}`;
+      const url = `https://discordapp.com/api/oauth2/authorize?client_id=${CLIENT_ID}&scope=identify&response_type=code&redirect_uri=${redirect}`;
       return apiResponse.successResponseWithData(
         res,
         "Redirect url received",
@@ -129,7 +151,6 @@ exports.discordAuth = [
 exports.findExistingEmail = [
   function (req, res) {
     try {
-      console.log(req.query.email);
       UserModel.findOne({ email: req.query.email }).then((email) => {
         if (email !== null) {
           return apiResponse.successResponseWithData(
