@@ -216,7 +216,7 @@ function updateTeamScore(index, team, final) {
   const secondTeamIndex = index ? 0 : 1;
   const current = team.participants[index];
   return {
-    id: team.participants[index].id,
+    id: team.participants[index].participant[0].id,
     scoreFor: (final.scoreFor += current.score),
     scoreAgainst: (final.scoreAgainst +=
       team.participants[secondTeamIndex].score),
