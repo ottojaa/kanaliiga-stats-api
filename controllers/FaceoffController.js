@@ -1,3 +1,4 @@
+const fs = require('fs');
 const FaceoffModel = require("../models/FaceoffModel");
 const ReplayFilesModel = require("../models/ReplayFilesModel");
 const { body, validationResult } = require("express-validator");
@@ -341,6 +342,7 @@ exports.faceoffStore = [
           teams: match.teams,
         });
       });
+      console.log(Faceoff);
 
       if (!errors.isEmpty()) {
         return apiResponse.validationErrorWithData(
@@ -622,6 +624,34 @@ exports.replayParserV2 = [
       } else {
         return apiResponse.ErrorResponse(res, "Cannot parse replay file");
       }
+    } catch (err) {
+      console.log(err);
+      //throw error in json response with status 500.
+      return apiResponse.ErrorResponse(res, err);
+    }
+  },
+];
+
+exports.getReplaysForMatch = [
+  auth,
+  function (req, res) {
+    try {
+      ReplayFilesModel.findOne({ matchId: req.query.matchId }).then(
+        (Replays) => {
+          if (Replays === null) {
+            return apiResponse.successResponseWithData(
+              res,
+              "Replay files not found for this match:",
+              []
+            );
+          } else {
+
+            return apiResponse.successResponseWithData(
+              res,
+              "Replays found for match",
+              Replays
+            )};
+          })
     } catch (err) {
       console.log(err);
       //throw error in json response with status 500.
