@@ -36,9 +36,7 @@ function getTeamPlayerData(data, teamId) {
       match.teams.forEach((team) => {
         if (team.teamId === teamId) {
           team.players.forEach((player) => {
-            const index = arr.findIndex(
-              (exists) => exists.name === player.name
-            );
+            const index = arr.findIndex((exists) => exists.name === player.name);
             if (index > -1) {
               arr[index].count += 1;
               arr[index].score += player.score;
@@ -65,16 +63,11 @@ function getTeamPlayerData(data, teamId) {
   });
   final.total = cloneDeep(arr);
   arr.forEach((player) => {
-    player.score =
-      Math.round((player.score / player.count + Number.EPSILON) * 100) / 100;
-    player.assists =
-      Math.round((player.assists / player.count + Number.EPSILON) * 100) / 100;
-    player.saves =
-      Math.round((player.saves / player.count + Number.EPSILON) * 100) / 100;
-    player.shots =
-      Math.round((player.shots / player.count + Number.EPSILON) * 100) / 100;
-    player.goals =
-      Math.round((player.goals / player.count + Number.EPSILON) * 100) / 100;
+    player.score = Math.round((player.score / player.count + Number.EPSILON) * 100) / 100;
+    player.assists = Math.round((player.assists / player.count + Number.EPSILON) * 100) / 100;
+    player.saves = Math.round((player.saves / player.count + Number.EPSILON) * 100) / 100;
+    player.shots = Math.round((player.shots / player.count + Number.EPSILON) * 100) / 100;
+    player.goals = Math.round((player.goals / player.count + Number.EPSILON) * 100) / 100;
   });
   final.average = cloneDeep(arr);
   return final;

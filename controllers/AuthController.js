@@ -23,37 +23,31 @@ exports.discordCallback = [
     if (!req.query.code) throw new Error("NoCodeProvided");
     const code = req.query.code;
     let formData = {
-      'client_id': CLIENT_ID,
-      'client_secret': CLIENT_SECRET,
-      'grant_type': 'authorization_code',
-      'code': code,
-      'redirect_uri': CLIENT_REDIRECT,
-      'scope': 'identify'
-    }
-    params = _encode(formData)
-    const response = await fetch(
-      `https://discordapp.com/api/oauth2/token`,
-      {
-        method: "POST",
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded'
-        },
-        body: params
-      }
-    );
+      client_id: CLIENT_ID,
+      client_secret: CLIENT_SECRET,
+      grant_type: "authorization_code",
+      code: code,
+      redirect_uri: CLIENT_REDIRECT,
+      scope: "identify",
+    };
+    params = _encode(formData);
+    const response = await fetch(`https://discordapp.com/api/oauth2/token`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: params,
+    });
     const json = await response.json();
-    if(!json) {
-      return apiResponse.ErrorResponse(res, 'If you see this error, contact @rutkula#2543 in kanaliiga discord');
+    if (!json) {
+      return apiResponse.ErrorResponse(res, "If you see this error, contact @rutkula#2543 in kanaliiga discord");
     }
-    const discordInternal = await fetch(
-      `https://discordapp.com/api/users/@me`,
-      {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${json.access_token}`,
-        },
-      }
-    );
+    const discordInternal = await fetch(`https://discordapp.com/api/users/@me`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${json.access_token}`,
+      },
+    });
     const data = await discordInternal.json();
     UserModel.findOne({ discordId: data.id }).then((user) => {
       if (user !== null) {
@@ -68,11 +62,7 @@ exports.discordCallback = [
         const secret = process.env.JWT_SECRET;
         //Generated JWT token with Payload and secret.
         userData.token = jwt.sign(jwtPayload, secret);
-        return apiResponse.successResponseWithData(
-          res,
-          "Login With OAUTH2 Success.",
-          userData
-        );
+        return apiResponse.successResponseWithData(res, "Login With OAUTH2 Success.", userData);
       } else {
         const user = new UserModel({
           username: data.username,
@@ -93,11 +83,7 @@ exports.discordCallback = [
           const secret = process.env.JWT_SECRET;
           //Generated JWT token with Payload and secret.
           userData.token = jwt.sign(jwtPayload, secret);
-          return apiResponse.successResponseWithData(
-            res,
-            "Discord login Success.",
-            userData
-          );
+          return apiResponse.successResponseWithData(res, "Discord login Success.", userData);
         });
       }
     });
@@ -137,11 +123,7 @@ exports.discordAuth = [
   function (req, res) {
     try {
       const url = `https://discordapp.com/api/oauth2/authorize?client_id=${CLIENT_ID}&scope=identify&response_type=code&redirect_uri=${redirect}`;
-      return apiResponse.successResponseWithData(
-        res,
-        "Redirect url received",
-        url
-      );
+      return apiResponse.successResponseWithData(res, "Redirect url received", url);
     } catch (err) {
       return apiResponse.ErrorResponse(res, err);
     }
@@ -153,17 +135,9 @@ exports.findExistingEmail = [
     try {
       UserModel.findOne({ email: req.query.email }).then((email) => {
         if (email !== null) {
-          return apiResponse.successResponseWithData(
-            res,
-            "Email is already taken.",
-            { taken: true }
-          );
+          return apiResponse.successResponseWithData(res, "Email is already taken.", { taken: true });
         } else {
-          return apiResponse.successResponseWithData(
-            res,
-            "Email is not taken.",
-            { taken: false }
-          );
+          return apiResponse.successResponseWithData(res, "Email is not taken.", { taken: false });
         }
       });
     } catch (err) {
@@ -178,17 +152,9 @@ exports.findExistingUser = [
     try {
       UserModel.findOne({ username: req.query.username }).then((username) => {
         if (username !== null) {
-          return apiResponse.successResponseWithData(
-            res,
-            "Username is already taken.",
-            { taken: true }
-          );
+          return apiResponse.successResponseWithData(res, "Username is already taken.", { taken: true });
         } else {
-          return apiResponse.successResponseWithData(
-            res,
-            "Username is not taken.",
-            { taken: false }
-          );
+          return apiResponse.successResponseWithData(res, "Username is not taken.", { taken: false });
         }
       });
     } catch (err) {
@@ -223,10 +189,7 @@ exports.register = [
       });
     }),
   body("email"),
-  body("password")
-    .isLength({ min: 6 })
-    .trim()
-    .withMessage("Password must be 6 characters or greater."),
+  body("password").isLength({ min: 6 }).trim().withMessage("Password must be 6 characters or greater."),
   // Sanitize fields.
   sanitizeBody("username").escape(),
   sanitizeBody("email").escape(),
@@ -238,11 +201,7 @@ exports.register = [
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
         // Display sanitized values/errors messages.
-        return apiResponse.validationErrorWithData(
-          res,
-          "Validation Error.",
-          errors.array()
-        );
+        return apiResponse.validationErrorWithData(res, "Validation Error.", errors.array());
       } else {
         //hash input password
         bcrypt.hash(req.body.password, 10, function (err, hash) {
@@ -257,16 +216,10 @@ exports.register = [
             confirmOTP: otp,
           });
           // Html email body
-          let html =
-            "<p>Please Confirm your Account.</p><p>OTP: " + otp + "</p>";
+          let html = "<p>Please Confirm your Account.</p><p>OTP: " + otp + "</p>";
           // Send confirmation email
           mailer
-            .send(
-              constants.confirmEmails.from,
-              req.body.email,
-              "Confirm Account",
-              html
-            )
+            .send(constants.confirmEmails.from, req.body.email, "Confirm Account", html)
             .then(function () {
               // Save user.
               user.save(function (err) {
@@ -278,11 +231,7 @@ exports.register = [
                   username: user.username,
                   email: user.email,
                 };
-                return apiResponse.successResponseWithData(
-                  res,
-                  "Registration Success.",
-                  userData
-                );
+                return apiResponse.successResponseWithData(res, "Registration Success.", userData);
               });
             })
             .catch((err) => {
@@ -308,29 +257,19 @@ exports.register = [
  */
 exports.login = [
   body("email"),
-  body("password")
-    .isLength({ min: 1 })
-    .trim()
-    .withMessage("Password must be specified."),
+  body("password").isLength({ min: 1 }).trim().withMessage("Password must be specified."),
   sanitizeBody("email").escape(),
   sanitizeBody("password").escape(),
   (req, res) => {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
-        return apiResponse.validationErrorWithData(
-          res,
-          "Validation Error.",
-          errors.array()
-        );
+        return apiResponse.validationErrorWithData(res, "Validation Error.", errors.array());
       } else {
         UserModel.findOne({ email: req.body.email }).then((user) => {
           if (user) {
             //Compare given password with db's hash.
-            bcrypt.compare(req.body.password, user.password, function (
-              err,
-              same
-            ) {
+            bcrypt.compare(req.body.password, user.password, function (err, same) {
               if (same) {
                 //Check account confirmation.
                 if (user.isConfirmed) {
@@ -347,16 +286,9 @@ exports.login = [
                     const secret = process.env.JWT_SECRET;
                     //Generated JWT token with Payload and secret.
                     userData.token = jwt.sign(jwtPayload, secret);
-                    return apiResponse.successResponseWithData(
-                      res,
-                      "Login Success.",
-                      userData
-                    );
+                    return apiResponse.successResponseWithData(res, "Login Success.", userData);
                   } else {
-                    return apiResponse.unauthorizedResponse(
-                      res,
-                      "Account is not active. Please contact admin."
-                    );
+                    return apiResponse.unauthorizedResponse(res, "Account is not active. Please contact admin.");
                   }
                 } else {
                   return apiResponse.unauthorizedResponse(
@@ -366,19 +298,11 @@ exports.login = [
                   );
                 }
               } else {
-                return apiResponse.unauthorizedResponse(
-                  res,
-                  "Email or Password wrong.",
-                  { errorCode: 1 }
-                );
+                return apiResponse.unauthorizedResponse(res, "Email or Password wrong.", { errorCode: 1 });
               }
             });
           } else {
-            return apiResponse.unauthorizedResponse(
-              res,
-              "Email or Password wrong.",
-              { errorCode: 1 }
-            );
+            return apiResponse.unauthorizedResponse(res, "Email or Password wrong.", { errorCode: 1 });
           }
         });
       }
@@ -401,11 +325,7 @@ exports.verifyConfirm = [
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
-        return apiResponse.validationErrorWithData(
-          res,
-          "Validation Error.",
-          errors.array()
-        );
+        return apiResponse.validationErrorWithData(res, "Validation Error.", errors.array());
       } else {
         var query = { email: req.body.email };
         UserModel.findOne(query).then((user) => {
@@ -420,33 +340,19 @@ exports.verifyConfirm = [
                   confirmOTP: null,
                 })
                   .then((userData) => {
-                    return apiResponse.successResponseWithData(
-                      res,
-                      "Account confirmation success!",
-                      userData
-                    );
+                    return apiResponse.successResponseWithData(res, "Account confirmation success!", userData);
                   })
                   .catch((err) => {
                     return apiResponse.ErrorResponse(res, err);
                   });
               } else {
-                return apiResponse.unauthorizedResponse(
-                  res,
-                  "One time password is incorrect.",
-                  { errorCode: 2 }
-                );
+                return apiResponse.unauthorizedResponse(res, "One time password is incorrect.", { errorCode: 2 });
               }
             } else {
-              return apiResponse.unauthorizedResponse(
-                res,
-                "Account already confirmed."
-              );
+              return apiResponse.unauthorizedResponse(res, "Account already confirmed.");
             }
           } else {
-            return apiResponse.unauthorizedResponse(
-              res,
-              "Specified email not found."
-            );
+            return apiResponse.unauthorizedResponse(res, "Specified email not found.");
           }
         });
       }
@@ -475,11 +381,7 @@ exports.resendConfirmOtp = [
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
-        return apiResponse.validationErrorWithData(
-          res,
-          "Validation Error.",
-          errors.array()
-        );
+        return apiResponse.validationErrorWithData(res, "Validation Error.", errors.array());
       } else {
         var query = { email: req.body.email };
         UserModel.findOne(query).then((user) => {
@@ -489,41 +391,24 @@ exports.resendConfirmOtp = [
               // Generate otp
               let otp = utility.randomNumber(4);
               // Html email body
-              let html =
-                "<p>Please Confirm your Account.</p><p>OTP: " + otp + "</p>";
+              let html = "<p>Please Confirm your Account.</p><p>OTP: " + otp + "</p>";
               // Send confirmation email
-              mailer
-                .send(
-                  constants.confirmEmails.from,
-                  req.body.email,
-                  "Confirm Account",
-                  html
-                )
-                .then(function () {
-                  user.isConfirmed = 0;
-                  user.confirmOTP = otp;
-                  // Save user.
-                  user.save(function (err) {
-                    if (err) {
-                      return apiResponse.ErrorResponse(res, err);
-                    }
-                    return apiResponse.successResponse(
-                      res,
-                      "Confirm otp sent."
-                    );
-                  });
+              mailer.send(constants.confirmEmails.from, req.body.email, "Confirm Account", html).then(function () {
+                user.isConfirmed = 0;
+                user.confirmOTP = otp;
+                // Save user.
+                user.save(function (err) {
+                  if (err) {
+                    return apiResponse.ErrorResponse(res, err);
+                  }
+                  return apiResponse.successResponse(res, "Confirm otp sent.");
                 });
+              });
             } else {
-              return apiResponse.unauthorizedResponse(
-                res,
-                "Account already confirmed."
-              );
+              return apiResponse.unauthorizedResponse(res, "Account already confirmed.");
             }
           } else {
-            return apiResponse.unauthorizedResponse(
-              res,
-              "Specified email not found."
-            );
+            return apiResponse.unauthorizedResponse(res, "Specified email not found.");
           }
         });
       }
